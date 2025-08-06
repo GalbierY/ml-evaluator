@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from metrics.evaluator import evaluate_model, plot_confusion_matrix, plot_roc_curve
+from metrics.evaluator import evaluate_model, plot_true_vs_pred, plot_residuals, plot_residuals_vs_pred, plot_prediction_distribution, plot_binned_errors
 
 # streamlit run app.py
 
@@ -15,37 +15,45 @@ if uploaded_file:
     st.write("### Preview of Uploaded Data")
     st.dataframe(df)
 
-    # Identificar colunas disponíveis
     columns = list(df.columns)
-
-    # Separar colunas possíveis para avaliação
-    y_true_cols = [col for col in columns if col.startswith("y_true")]
-    model_cols = [col for col in columns if col.startswith("model")]
+    y_true_cols = [col for col in columns if "y_true" in col.lower()]
+    model_cols = [col for col in columns if "model" in col.lower()]
 
     if not y_true_cols or not model_cols:
         st.error("CSV must contain at least one 'y_true_' and one 'model_' column.")
     else:
-        col1, col2 = st.columns(2)
+        st.markdown("### 🧠 Select Multiple Pairs to Compare")
 
-        with col1:
-            selected_y_true = st.selectbox("Select Ground Truth Column", y_true_cols)
-        with col2:
-            selected_model = st.selectbox("Select Model Output Column", model_cols)
+        pairs = []
+        for true_col in y_true_cols:
+            related_preds = [col for col in model_cols if true_col.split("_")[-1] in col]
+            for pred_col in related_preds:
+                pairs.append((true_col, pred_col))
 
-        y_true_raw = df[selected_y_true].values
-        y_pred_raw = df[selected_model].values
+        selected_pairs = st.multiselect("Select (Ground Truth, Prediction) Pairs", pairs, default=pairs)
 
-        # Converter para binário automaticamente se forem contínuos
-        threshold = st.slider("Threshold for classification", 0.0, 1.0, 0.5, step=0.01)
-        y_true = (y_true_raw > threshold).astype(int)
-        y_pred = (y_pred_raw > threshold).astype(int)
+        for idx, (true_col, pred_col) in enumerate(selected_pairs):
+            y_true = df[true_col].values
+            y_pred = df[pred_col].values
 
-        st.write("### Evaluation Metrics")
-        metrics = evaluate_model(y_true, y_pred)
-        st.json(metrics)
+            st.markdown(f"---\n### 🔎 Evaluation for `{true_col}` vs `{pred_col}`")
 
-        st.write("### Confusion Matrix")
-        st.pyplot(plot_confusion_matrix(y_true, y_pred))
+            metrics = evaluate_model(y_true, y_pred)
+            st.json(metrics)
 
-        st.write("### ROC Curve")
-        st.pyplot(plot_roc_curve(y_true, y_pred))
+            cm_col, roc_col, res_pred_col, pred_dist_col, bin_er_col = st.columns(5)
+
+            with cm_col:
+                st.pyplot(plot_true_vs_pred(y_true, y_pred))
+
+            with roc_col:
+                st.pyplot(plot_residuals(y_true, y_pred))
+            
+            with res_pred_col:
+                st.pyplot(plot_residuals_vs_pred(y_true, y_pred))
+
+            with pred_dist_col:
+                st.pyplot(plot_prediction_distribution(y_true, y_pred))
+
+            with bin_er_col:
+                st.pyplot(plot_binned_errors(y_true, y_pred))
