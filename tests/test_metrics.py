@@ -2,7 +2,7 @@ import pandas as pd
 from metrics.evaluator import evaluate_model
 import logging
 
-def evaluate_all_model_outputs(csv_path: str):
+def test_evaluate_all_model_outputs(csv_path: str):
     """
     Avalia múltiplos modelos (output1 e output2) comparando com y_true_1 e y_true_2.
     Chama evaluate_model() para cada par e imprime/retorna métricas.
@@ -39,4 +39,4 @@ def evaluate_all_model_outputs(csv_path: str):
 
     return results
 
-evaluate_all_model_outputs("data/sweep_output.csv")
+test_evaluate_all_model_outputs("data/sweep_output.csv")
