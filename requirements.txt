@@ -6,3 +6,4 @@ seaborn
 numpy
 joblib
 logging
+pytest
