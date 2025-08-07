@@ -1,5 +1,6 @@
 import pandas as pd
 from metrics.evaluator import evaluate_model
+import logging
 
 def evaluate_all_model_outputs(csv_path: str):
     """
@@ -32,7 +33,7 @@ def evaluate_all_model_outputs(csv_path: str):
         output_type = "Output 1" if "Output 1" in name else "Output 2"
         y_true = y_trues[output_type]
 
-        print(f"\n🔍 Avaliando: {name}")
+        logging.info(f"🔍 Avaliando: {name}")
         metrics = evaluate_model(y_true, y_pred)
         results[name] = metrics
 
