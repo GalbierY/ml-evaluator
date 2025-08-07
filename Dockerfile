@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10.15-slim
 
 ENV PYTHONUNBUFFERED=1 \
     STREAMLIT_SERVER_HEADLESS=true \
